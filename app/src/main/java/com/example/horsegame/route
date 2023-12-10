@@ -4,9 +4,7 @@
 3- añadimos nuevas funcionalidades
 
 ERRORES
-- redimensionado del tablero
-- quitar la action bar
--
+
 
 MEJORAS DE UX
 - un color para el punto actual y otro para el rastro
@@ -14,6 +12,7 @@ MEJORAS DE UX
 -
 
 FUNCIONALIDADES
+- inicio aleatorio
 - poder mover el caballo (comprobando el movimiento en L)
 - pintar niveles y limpiarlos
 - control de movimientos
