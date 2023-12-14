@@ -16,7 +16,10 @@ class MainActivity : AppCompatActivity() {
     private var cellSelected_x = 0
     private var cellSelected_y = 0
 
+    private var movesRequired = 4
+    private var moves = 64
     private var options = 0
+
     private var nameColorBlack = "black_cell"
     private var nameColorWhite = "white_cell"
 
@@ -87,15 +90,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun selectCell(x: Int, y: Int) {
+        moves--
+        var tvMovesData = findViewById<TextView>(R.id.tvMovesData)
+        tvMovesData.text = moves.toString()
+
         board[x][y] = 1
         paintHorseCell(cellSelected_x, cellSelected_y, "previus_cell")
 
         cellSelected_x = x
         cellSelected_y = y
-        clearOptions()
-        paintHorseCell(x, y, "selected_cell")
 
+        clearOptions()
+
+        paintHorseCell(x, y, "selected_cell")
         checkOption(x, y)
+
+        if (moves > 0){
+            checkNewBonus()
+//            checkGameOver(x,y)
+        }
+//        else checkSuccessfulEnd()
+    }
+    private fun checkNewBonus(){
+        if(moves%movesRequired == 0){
+            var bonusCell_x = 0
+            var bonusCell_y = 0
+
+            var bonusCell = false
+            while (bonusCell == false){
+                bonusCell_x = (0..7).random()
+                bonusCell_y = (0..7).random()
+
+                if (board[bonusCell_x][bonusCell_y] == 0) bonusCell = true
+            }
+            board[bonusCell_x][bonusCell_y] =2
+            paintBonusCell(bonusCell_x, bonusCell_y)
+        }
+    }
+
+    private fun paintBonusCell(x: Int,y: Int){
+        val iv: ImageView = findViewById(resources.getIdentifier("c$x$y", "id", packageName))
+        iv.setImageResource(R.drawable.bonus)
     }
 
     private fun clearOption(x: Int, y: Int) {
