@@ -41,10 +41,15 @@ class MainActivity : AppCompatActivity() {
     private var cellSelected_x = 0
     private var cellSelected_y = 0
 
-    private var level = 2
-    private var levelMoves = 64
-    private var movesRequired = 4
-    private var moves = 64
+    private var nextLevel = false
+    private var level = 1
+    private var levelMoves = 0
+    private var movesRequired = 0
+    private var moves = 0
+    private var lives = 1
+    private var score_lives = 1
+    private var scoreLevel = 1
+
     private var options = 0
     private var bonus = 0
 
@@ -64,7 +69,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initScreenGame() {
         setSizeBoard()
-        hideMessage()
+        hideMessage(false)
     }
 
     private fun setSizeBoard() {
@@ -103,9 +108,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun hideMessage() {
+    private fun hideMessage(start: Boolean) {
         var lyMessage = findViewById<LinearLayout>(R.id.LyMessage)
         lyMessage.visibility = View.INVISIBLE
+
+        if (start) startGame()
+    }
+
+    fun launchAction(v: View) {
+        hideMessage(true)
     }
 
     fun launchShareGame(v: View) {
@@ -182,11 +193,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         val filePath = Environment.getExternalStoragePublicDirectory(
-        Environment.DIRECTORY_PICTURES + "/Screenshots"
+            Environment.DIRECTORY_PICTURES + "/Screenshots"
         ).absolutePath
 
         val dir = File(filePath)
-        if(!dir.exists()) dir.mkdir()
+        if (!dir.exists()) dir.mkdir()
         val file = File(dir, fileName)
         val fOut = FileOutputStream(file)
 
@@ -311,15 +322,134 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setFirstPosition() {
+        var x = 0
+        var y = 0
 
-        var x: Int = (0..7).random()
-        var y: Int = (0..7).random()
 
+        var firstPosition = false
+        while (firstPosition == false){
+             x = (0..7).random()
+             y = (0..7).random()
+            checkOption(x,y)
+            if (board[x][y] == 0) firstPosition = true
+        }
         cellSelected_x = x
         cellSelected_y = y
         selectCell(x, y)
     }
 
+    private fun setLevel() {
+        if (nextLevel) {
+            level++
+        } else {
+            lives--
+            if (lives < 1) {
+                level = 1
+                lives = 1
+            }
+        }
+    }
+    private fun setLevelParameters(){
+        var tvLiveData = findViewById<TextView>(R.id.tvLiveData)
+        tvLiveData.text = lives.toString()
+
+        score_lives = lives
+
+        var tvLevelNumber = findViewById<TextView>(R.id.tvLevelNumber)
+        tvLevelNumber.text = level.toString()
+        scoreLevel = level
+
+        bonus = 0
+        var tvBonusData = findViewById<TextView>(R.id.tvBonusData)
+        tvBonusData.text = ""
+
+        setLevelMoves()
+        moves = levelMoves
+
+        movesRequired = setMovesRequired()
+    }
+
+    private fun setLevelMoves(){
+        when(level){
+            1-> levelMoves = 64
+            2-> levelMoves = 56
+            3-> levelMoves = 32
+            4-> levelMoves = 16
+            5-> levelMoves = 48
+            6-> levelMoves = 36
+            7-> levelMoves = 48
+            8-> levelMoves = 49
+            9-> levelMoves = 59
+            10-> levelMoves = 48
+            11-> levelMoves = 64
+            12-> levelMoves = 48
+            13-> levelMoves = 48
+        }
+    }
+    private fun setMovesRequired(): Int{
+        var movesRequired = 0
+
+        when(level){
+            1-> movesRequired = 8
+            2-> movesRequired = 10
+            3-> movesRequired = 12
+            4-> movesRequired = 10
+            5-> movesRequired = 10
+            6-> movesRequired = 12
+            7-> movesRequired = 5
+            8-> movesRequired = 7
+            9-> movesRequired = 9
+            10-> movesRequired = 8
+            11-> movesRequired = 1000
+            12-> movesRequired = 5
+            13-> movesRequired = 5
+        }
+        return movesRequired
+    }
+    private fun setBoardLevel(){
+        when (level){
+            2->paintLevel_2()
+            3->paintLevel_3()
+            4->paintLevel_4()
+            5->paintLevel_5()
+//            6->paintLevel_6()
+//            7->paintLevel_7()
+//            8->paintLevel_8()
+//            9->paintLevel_9()
+//            10->paintLevel_10()
+//            11->paintLevel_11()
+//            12->paintLevel_12()
+//            13->paintLevel_13()
+        }
+    }
+    private fun paint_Column(column: Int){
+        for (i in 0..7){
+            board[column][i] = 1
+            paintHorseCell(column, i, "previus_cell")
+        }
+    }
+    private fun paintLevel_2(){
+        paint_Column(6)
+    }
+    private fun paintLevel_3(){
+        for (i in 0..7){
+            for (j in 4..7){
+                board[j][i] = 1
+                paintHorseCell(j,i,"previus_cell")
+            }
+        }
+    }
+    private fun paintLevel_4(){
+        paintLevel_3(); paintLevel_5()
+    }
+    private fun paintLevel_5(){
+        for (i in 0..3){
+            for (j in 0..3){
+                board[j][i] = 1
+                paintHorseCell(j,i,"previus_cell")
+            }
+        }
+    }
     private fun checkNewBonus() {
         if (moves % movesRequired == 0) {
             var bonusCell_x = 0
@@ -343,18 +473,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun growProgressBonus() {
-        var moves_done = levelMoves - moves
-        var bonus_done = moves_done / movesRequired
-        var moves_rest = movesRequired * (bonus_done)
-        var bonus_grow = moves_done - moves_rest
+        val moves_done = levelMoves - moves
+        val bonus_done = moves_done / movesRequired
+        val moves_rest = movesRequired * (bonus_done)
+        val bonus_grow = moves_done - moves_rest
 
-        var v = findViewById<View>(R.id.vNewBonus)
-        var widthBonus = ((width_bonus / movesRequired) * bonus_grow).toFloat()
+        val v = findViewById<View>(R.id.vNewBonus)
+        val widthBonus = ((width_bonus / movesRequired) * bonus_grow).toFloat()
 
-        var height =
+        val height =
             TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 8f, resources.displayMetrics)
                 .toInt()
-        var width = TypedValue.applyDimension(
+        val width = TypedValue.applyDimension(
             TypedValue.COMPLEX_UNIT_DIP,
             widthBonus,
             resources.displayMetrics
@@ -376,6 +506,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun showMessage(title: String, action: String, gameOver: Boolean) {
         gaming = false
+        nextLevel = !gameOver
         var lyMessage = findViewById<LinearLayout>(R.id.LyMessage)
         lyMessage.visibility = View.VISIBLE
 
@@ -386,11 +517,11 @@ class MainActivity : AppCompatActivity() {
         var score: String
         if (gameOver) {
             score = "Score: " + (levelMoves - moves) + "/" + levelMoves
-            string_share = "This game makes me sick !!!" + score + " http://matias/horsegame"
+            string_share = "This game makes me sick !!!$score http://matias/horsegame"
         } else {
             score = tvTimeData.text.toString()
             string_share =
-                "Let's go!!! New challenge completed. Level: $level (" + score + ") http://matias/horsegame"
+                "Let's go!!! New challenge completed. Level: $level ($score) http://matias/horsegame"
         }
         var tvScoreMessage = findViewById<TextView>(R.id.tvScoreMessage)
         tvScoreMessage.text = score
@@ -547,12 +678,18 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startGame() {
-        gaming = true
+        setLevel()
+        level = 2
+        setLevelParameters()
+
         resetBoard()
         clearBoard()
+
+        setBoardLevel()
         setFirstPosition()
 
         resetTime()
         startTime()
+        gaming = true
     }
 }
